@@ -10,6 +10,7 @@ import (
 
 	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/opsminded/api"
+	"github.com/opsminded/graphlib"
 	"github.com/opsminded/service"
 
 	middleware "github.com/oapi-codegen/nethttp-middleware"
@@ -18,39 +19,35 @@ import (
 func main() {
 	ex := service.TestableExtractor{
 		FrequencyDuration: time.Second,
-		Edges: []service.Edge{
+		Edges: []graphlib.Edge{
 			{
 				Label:       "AB",
-				Class:       "DEFAULT",
-				Source:      "A",
-				Destination: "B",
+				Source:      graphlib.Vertex{Label: "A"},
+				Destination: graphlib.Vertex{Label: "B"},
 			},
 			{
 				Label:       "BC",
-				Class:       "DEFAULT",
-				Source:      "B",
-				Destination: "C",
+				Source:      graphlib.Vertex{Label: "B"},
+				Destination: graphlib.Vertex{Label: "C"},
 			},
 		},
-		Vertices: []service.Vertex{
+		Vertices: []graphlib.Vertex{
 			{
 				Label: "A",
-				Class: "DEFAULT",
 			},
 			{
 				Label: "B",
-				Class: "DEFAULT",
 			},
 			{
 				Label: "C",
-				Class: "DEFAULT",
 			},
 		},
 	}
 
-	s := service.New([]service.Extractor{&ex})
-	s.Extract()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
+	s := service.New(ctx, time.Second, []service.Extractor{&ex}, nil)
 	demo := api.New(s)
 
 	swagger, err := api.GetSwagger()
