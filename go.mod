@@ -5,9 +5,9 @@ go 1.24.2
 require (
 	github.com/getkin/kin-openapi v0.132.0
 	github.com/oapi-codegen/nethttp-middleware v1.1.2
-	github.com/opsminded/api v1.1.0
-	github.com/opsminded/graphlib v1.7.0
-	github.com/opsminded/service v0.0.0-20250513003211-fbd0124c0b26
+	github.com/opsminded/api v1.2.0
+	github.com/opsminded/graphlib v1.9.0
+	github.com/opsminded/service v0.0.0-20250513173525-8ad24e7df03e
 )
 
 require (
