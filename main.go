@@ -48,6 +48,9 @@ func main() {
 	defer cancel()
 
 	s := service.New(ctx, time.Second, []service.Extractor{&ex}, nil)
+	time.Sleep(5 * time.Second)
+	s.SetVertexHealth("C", false)
+
 	demo := api.New(s)
 
 	swagger, err := api.GetSwagger()
