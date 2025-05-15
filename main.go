@@ -20,233 +20,17 @@ import (
 
 func main() {
 	ex := service.TestableExtractor{
-		FrequencyDuration: time.Second,
+		FrequencyDuration: 20 * time.Second,
 		BaseEdges:         []graphlib.Edge{},
 		BaseVertices:      []graphlib.Vertex{},
 	}
 
-	for h := 0; h < 5; h++ {
-
-		ex.BaseVertices = append(ex.BaseVertices, graphlib.Vertex{
-			Label:   fmt.Sprintf("VMDatabaseServer_%d", h),
-			Healthy: true,
-		})
-
-		for x := 0; x < 4; x++ {
-			ex.BaseVertices = append(ex.BaseVertices, graphlib.Vertex{
-				Label:   fmt.Sprintf("Database_%d_%d", h, x),
-				Healthy: true,
-			})
-
-			ex.BaseEdges = append(ex.BaseEdges, graphlib.Edge{
-				Label: fmt.Sprintf("VMDatabaseServer_%d-Database_%d_%d", h, h, x),
-				Source: graphlib.Vertex{
-					Label:   fmt.Sprintf("VMDatabaseServer_%d", h),
-					Healthy: true,
-				},
-				Destination: graphlib.Vertex{
-					Label:   fmt.Sprintf("Database_%d_%d", h, x),
-					Healthy: true,
-				},
-			})
-		}
-	}
-
-	ex.BaseVertices = append(ex.BaseVertices, graphlib.Vertex{
-		Label:   "Internet",
-		Healthy: true,
-	})
-
-	ex.BaseVertices = append(ex.BaseVertices, graphlib.Vertex{
-		Label:   "AndroidApp",
-		Healthy: true,
-	})
-	ex.BaseEdges = append(ex.BaseEdges, graphlib.Edge{
-		Label: "AndroidApp-Internet",
-		Source: graphlib.Vertex{
-			Label:   "AndroidApp",
-			Healthy: true,
-		},
-		Destination: graphlib.Vertex{
-			Label:   "Internet",
-			Healthy: true,
-		},
-	})
-
-	ex.BaseVertices = append(ex.BaseVertices, graphlib.Vertex{
-		Label:   "IphoneApp",
-		Healthy: true,
-	})
-
-	ex.BaseEdges = append(ex.BaseEdges, graphlib.Edge{
-		Label: "IphoneApp-Internet",
-		Source: graphlib.Vertex{
-			Label:   "IphoneApp",
-			Healthy: true,
-		},
-		Destination: graphlib.Vertex{
-			Label:   "Internet",
-			Healthy: true,
-		},
-	})
-
-	ex.BaseVertices = append(ex.BaseVertices, graphlib.Vertex{
-		Label:   "APIGateway",
-		Healthy: true,
-	})
-	ex.BaseEdges = append(ex.BaseEdges, graphlib.Edge{
-		Label: "Internet-APIGateway",
-		Source: graphlib.Vertex{
-			Label:   "Internet",
-			Healthy: true,
-		},
-		Destination: graphlib.Vertex{
-			Label:   "APIGateway",
-			Healthy: true,
-		},
-	})
-
-	ex.BaseVertices = append(ex.BaseVertices, graphlib.Vertex{
-		Label:   "LoadBalancer_01",
-		Healthy: true,
-	})
-
-	ex.BaseVertices = append(ex.BaseVertices, graphlib.Vertex{
-		Label:   "LoadBalancer_02",
-		Healthy: true,
-	})
-	ex.BaseEdges = append(ex.BaseEdges, graphlib.Edge{
-		Label: "APIGateway-LoadBalancer_01",
-		Source: graphlib.Vertex{
-			Label:   "APIGateway",
-			Healthy: true,
-		},
-		Destination: graphlib.Vertex{
-			Label:   "LoadBalancer_01",
-			Healthy: true,
-		},
-	})
-	ex.BaseEdges = append(ex.BaseEdges, graphlib.Edge{
-		Label: "APIGateway-LoadBalancer_02",
-		Source: graphlib.Vertex{
-			Label:   "APIGateway",
-			Healthy: true,
-		},
-		Destination: graphlib.Vertex{
-			Label:   "LoadBalancer_02",
-			Healthy: true,
-		},
-	})
-
-	for x := 0; x < 8; x++ {
-		ex.BaseVertices = append(ex.BaseVertices, graphlib.Vertex{
-			Label:   fmt.Sprintf("Cluster_%d", x),
-			Healthy: true,
-		})
-		ex.BaseEdges = append(ex.BaseEdges, graphlib.Edge{
-			Label: fmt.Sprintf("LoadBalancer_01-Cluster_%d", x),
-			Source: graphlib.Vertex{
-				Label:   "LoadBalancer_01",
-				Healthy: true,
-			},
-			Destination: graphlib.Vertex{
-				Label:   fmt.Sprintf("Cluster_%d", x),
-				Healthy: true,
-			},
-		})
-		ex.BaseEdges = append(ex.BaseEdges, graphlib.Edge{
-			Label: fmt.Sprintf("LoadBalancer_02-Cluster_%d", x),
-			Source: graphlib.Vertex{
-				Label:   "LoadBalancer_02",
-				Healthy: true,
-			},
-			Destination: graphlib.Vertex{
-				Label:   fmt.Sprintf("Cluster_%d", x),
-				Healthy: true,
-			},
-		})
-	}
-
-	for x := 0; x < 20; x++ {
-		ex.BaseVertices = append(ex.BaseVertices, graphlib.Vertex{
-			Label:   fmt.Sprintf("Service_%d", x),
-			Healthy: true,
-		})
-		for y := 0; y < 8; y++ {
-			if Flip(60) {
-				ex.BaseEdges = append(ex.BaseEdges, graphlib.Edge{
-					Label: fmt.Sprintf("Cluster_%d-Service_%d", y, x),
-					Source: graphlib.Vertex{
-						Label:   fmt.Sprintf("Cluster_%d", y),
-						Healthy: true,
-					},
-					Destination: graphlib.Vertex{
-						Label:   fmt.Sprintf("Service_%d", x),
-						Healthy: true,
-					},
-				})
-			}
-		}
-
-		for _, v := range ex.BaseVertices {
-			if strings.Contains(v.Label, "VMDatabaseServer_") {
-				if Flip(30) {
-					ex.BaseEdges = append(ex.BaseEdges, graphlib.Edge{
-						Label: fmt.Sprintf("%s_Service_%d", v.Label, x),
-						Source: graphlib.Vertex{
-							Label:   fmt.Sprintf("Service_%d", x),
-							Healthy: true,
-						},
-						Destination: graphlib.Vertex{
-							Label:   v.Label,
-							Healthy: true,
-						},
-					})
-				}
-			}
-		}
-	}
-
-	for _, v := range android_app_modules {
-		ex.BaseVertices = append(ex.BaseVertices, graphlib.Vertex{
-			Label:   v,
-			Healthy: true,
-		})
-		ex.BaseEdges = append(ex.BaseEdges, graphlib.Edge{
-			Label: "AndroidApp" + "-" + v,
-			Source: graphlib.Vertex{
-				Label:   v,
-				Healthy: true,
-			},
-			Destination: graphlib.Vertex{
-				Label:   "AndroidApp",
-				Healthy: true,
-			},
-		})
-	}
-
-	for _, v := range iphone_app_modules {
-		ex.BaseVertices = append(ex.BaseVertices, graphlib.Vertex{
-			Label:   v,
-			Healthy: true,
-		})
-		ex.BaseEdges = append(ex.BaseEdges, graphlib.Edge{
-			Label: "IphoneApp" + "-" + v,
-			Source: graphlib.Vertex{
-				Label:   v,
-				Healthy: true,
-			},
-			Destination: graphlib.Vertex{
-				Label:   "IphoneApp",
-				Healthy: true,
-			},
-		})
-	}
+	buildTest2(&ex)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	s := service.New(ctx, time.Second, []service.Extractor{&ex}, nil)
+	s := service.New(ctx, 20*time.Second, []service.Extractor{&ex}, nil)
 	time.Sleep(5 * time.Second)
 	s.SetVertexHealth("AndroidApp_CreditSimulators_AppModule", false)
 	s.SetVertexHealth("LoadBalancer_01", false)
@@ -298,38 +82,21 @@ func NewAuthenticator() openapi3filter.AuthenticationFunc {
 	}
 }
 
-var android_app_modules = []string{
-	"AndroidApp_Cards_AppModule",
-	"AndroidApp_Payments_AppModule",
-	"AndroidApp_Transfers_AppModule",
-	"AndroidApp_Investments_AppModule",
-	"AndroidApp_Loans_AppModule",
-	"AndroidApp_Financing_AppModule",
-	"AndroidApp_Insurance_AppModule",
-	"AndroidApp_Profile_AppModule",
-	"AndroidApp_Notifications_AppModule",
-	"AndroidApp_Chat_AppModule",
-	"AndroidApp_Rewards_AppModule",
-	"AndroidApp_VirtualCard_AppModule",
-	"AndroidApp_Portability_AppModule",
-	"AndroidApp_CreditSimulators_AppModule",
-}
-
-var iphone_app_modules = []string{
-	"IphoneApp_Cards_AppModule",
-	"IphoneApp_Payments_AppModule",
-	"IphoneApp_Transfers_AppModule",
-	"IphoneApp_Investments_AppModule",
-	"IphoneApp_Loans_AppModule",
-	"IphoneApp_Financing_AppModule",
-	"IphoneApp_Insurance_AppModule",
-	"IphoneApp_Profile_AppModule",
-	"IphoneApp_Notifications_AppModule",
-	"IphoneApp_Chat_AppModule",
-	"IphoneApp_Rewards_AppModule",
-	"IphoneApp_VirtualCard_AppModule",
-	"IphoneApp_Portability_AppModule",
-	"IphoneApp_CreditSimulators_AppModule",
+var app_modules = []string{
+	"Cards",
+	"Payments",
+	"Transfers",
+	"Investments",
+	"Loans",
+	"Financing",
+	"Insurance",
+	"Profile",
+	"Notifications",
+	"Chat",
+	"Rewards",
+	"VirtualCard",
+	"Portability",
+	"CreditSimulators",
 }
 
 func Flip(chance int) bool {
@@ -340,5 +107,239 @@ func Flip(chance int) bool {
 		return true // 100 %: sempre
 	default:
 		return rand.Intn(100) < chance
+	}
+}
+
+func buildOfic(ex *service.TestableExtractor) {
+	for h := 0; h < 5; h++ {
+
+		ex.BaseVertices = append(ex.BaseVertices, graphlib.Vertex{
+			Key:       fmt.Sprintf("VMDatabaseServer_%d", h),
+			Label:     fmt.Sprintf("VMDatabaseServer %d", h),
+			Healthy:   true,
+			LastCheck: time.Now().UnixNano(),
+		})
+
+		for x := 0; x < 4; x++ {
+			ex.BaseVertices = append(ex.BaseVertices, graphlib.Vertex{
+				Key:       fmt.Sprintf("Database_%d_%d", h, x),
+				Label:     fmt.Sprintf("Database %d%d", h, x),
+				Healthy:   true,
+				LastCheck: time.Now().UnixNano(),
+			})
+
+			ex.BaseEdges = append(ex.BaseEdges, graphlib.Edge{
+				Source: fmt.Sprintf("VMDatabaseServer_%d", h),
+				Target: fmt.Sprintf("Database_%d_%d", h, x),
+			})
+		}
+	}
+
+	ex.BaseVertices = append(ex.BaseVertices, graphlib.Vertex{
+		Key:       "Internet",
+		Label:     "Internet",
+		Healthy:   true,
+		LastCheck: time.Now().UnixNano(),
+	})
+
+	ex.BaseVertices = append(ex.BaseVertices, graphlib.Vertex{
+		Key:       "Android",
+		Label:     "Android",
+		Healthy:   true,
+		LastCheck: time.Now().UnixNano(),
+	})
+	ex.BaseVertices = append(ex.BaseVertices, graphlib.Vertex{
+		Key:       "Iphone",
+		Label:     "Iphone",
+		Healthy:   true,
+		LastCheck: time.Now().UnixNano(),
+	})
+
+	ex.BaseEdges = append(ex.BaseEdges, graphlib.Edge{
+		Source: "Android",
+		Target: "Internet",
+	})
+	ex.BaseEdges = append(ex.BaseEdges, graphlib.Edge{
+		Source: "Iphone",
+		Target: "Internet",
+	})
+
+	ex.BaseVertices = append(ex.BaseVertices, graphlib.Vertex{
+		Key:       "APIGateway",
+		Label:     "APIGateway",
+		Healthy:   true,
+		LastCheck: time.Now().UnixNano(),
+	})
+	ex.BaseEdges = append(ex.BaseEdges, graphlib.Edge{
+		Source: "Internet",
+		Target: "APIGateway",
+	})
+
+	ex.BaseVertices = append(ex.BaseVertices, graphlib.Vertex{
+		Key:       "LoadBalancer_01",
+		Label:     "LB 01",
+		Healthy:   true,
+		LastCheck: time.Now().UnixNano(),
+	})
+
+	ex.BaseVertices = append(ex.BaseVertices, graphlib.Vertex{
+		Key:       "LoadBalancer_02",
+		Label:     "LB 02",
+		Healthy:   true,
+		LastCheck: time.Now().UnixNano(),
+	})
+	ex.BaseEdges = append(ex.BaseEdges, graphlib.Edge{
+		Source: "APIGateway",
+		Target: "LoadBalancer_01",
+	})
+	ex.BaseEdges = append(ex.BaseEdges, graphlib.Edge{
+		Source: "APIGateway",
+		Target: "LoadBalancer_02",
+	})
+
+	for x := 0; x < 8; x++ {
+		ex.BaseVertices = append(ex.BaseVertices, graphlib.Vertex{
+			Key:       fmt.Sprintf("Cluster_%d", x),
+			Label:     fmt.Sprintf("Cluster %d", x),
+			Healthy:   true,
+			LastCheck: time.Now().UnixNano(),
+		})
+		ex.BaseEdges = append(ex.BaseEdges, graphlib.Edge{
+			Source: "LoadBalancer_01",
+			Target: fmt.Sprintf("Cluster_%d", x),
+		})
+		ex.BaseEdges = append(ex.BaseEdges, graphlib.Edge{
+			Source: "LoadBalancer_02",
+			Target: fmt.Sprintf("Cluster_%d", x),
+		})
+	}
+
+	for x := 0; x < 20; x++ {
+		ex.BaseVertices = append(ex.BaseVertices, graphlib.Vertex{
+			Key:       fmt.Sprintf("Service_%d", x),
+			Label:     fmt.Sprintf("svc %d", x),
+			Healthy:   true,
+			LastCheck: time.Now().UnixNano(),
+		})
+		for y := 0; y < 8; y++ {
+			if Flip(60) {
+				ex.BaseEdges = append(ex.BaseEdges, graphlib.Edge{
+					Source: fmt.Sprintf("Cluster_%d", y),
+					Target: fmt.Sprintf("Service_%d", x),
+				})
+			}
+		}
+
+		for _, v := range ex.BaseVertices {
+			if strings.Contains(v.Key, "VMDatabaseServer_") {
+				if Flip(30) {
+					ex.BaseEdges = append(ex.BaseEdges, graphlib.Edge{
+						Source: fmt.Sprintf("Service_%d", x),
+						Target: v.Key,
+					})
+				}
+			}
+		}
+	}
+
+	for _, label := range app_modules {
+		ex.BaseVertices = append(ex.BaseVertices, graphlib.Vertex{
+			Key:       "AndroidApp_" + label,
+			Label:     label,
+			Healthy:   true,
+			LastCheck: time.Now().UnixNano(),
+		})
+		ex.BaseEdges = append(ex.BaseEdges, graphlib.Edge{
+			Source: "AndroidApp_" + label,
+			Target: "Android",
+		})
+	}
+
+	for _, label := range app_modules {
+		ex.BaseVertices = append(ex.BaseVertices, graphlib.Vertex{
+			Key:       "IphoneApp_" + label,
+			Label:     label,
+			Healthy:   true,
+			LastCheck: time.Now().UnixNano(),
+		})
+		ex.BaseEdges = append(ex.BaseEdges, graphlib.Edge{
+			Source: "IphoneApp_" + label,
+			Target: "Iphone",
+		})
+	}
+}
+
+func buildTest(ex *service.TestableExtractor) {
+	ex.BaseVertices = append(ex.BaseVertices, graphlib.Vertex{
+		Key:       "A",
+		Label:     "A",
+		Healthy:   true,
+		LastCheck: time.Now().UnixNano(),
+	})
+	ex.BaseVertices = append(ex.BaseVertices, graphlib.Vertex{
+		Key:       "B",
+		Label:     "B",
+		Healthy:   true,
+		LastCheck: time.Now().UnixNano(),
+	})
+	ex.BaseVertices = append(ex.BaseVertices, graphlib.Vertex{
+		Key:       "C",
+		Label:     "C",
+		Healthy:   true,
+		LastCheck: time.Now().UnixNano(),
+	})
+	ex.BaseVertices = append(ex.BaseVertices, graphlib.Vertex{
+		Key:       "D",
+		Label:     "D",
+		Healthy:   true,
+		LastCheck: time.Now().UnixNano(),
+	})
+	ex.BaseVertices = append(ex.BaseVertices, graphlib.Vertex{
+		Key:       "E",
+		Label:     "E",
+		Healthy:   true,
+		LastCheck: time.Now().UnixNano(),
+	})
+
+	ex.BaseEdges = append(ex.BaseEdges, graphlib.Edge{
+		Source: "A",
+		Target: "B",
+	})
+	ex.BaseEdges = append(ex.BaseEdges, graphlib.Edge{
+		Source: "A",
+		Target: "C",
+	})
+	ex.BaseEdges = append(ex.BaseEdges, graphlib.Edge{
+		Source: "C",
+		Target: "D",
+	})
+	ex.BaseEdges = append(ex.BaseEdges, graphlib.Edge{
+		Source: "D",
+		Target: "E",
+	})
+}
+
+func buildTest2(ex *service.TestableExtractor) {
+	for a := range 100000 {
+		ex.BaseVertices = append(ex.BaseVertices, graphlib.Vertex{
+			Key:       fmt.Sprintf("A_%d", a),
+			Label:     fmt.Sprintf("A_%d", a),
+			Healthy:   true,
+			LastCheck: time.Now().UnixNano(),
+		})
+
+		for b := range 5 {
+			ex.BaseVertices = append(ex.BaseVertices, graphlib.Vertex{
+				Key:       fmt.Sprintf("B_%d_%d", a, b),
+				Label:     fmt.Sprintf("B_%d_%d", a, b),
+				Healthy:   true,
+				LastCheck: time.Now().UnixNano(),
+			})
+
+			ex.BaseEdges = append(ex.BaseEdges, graphlib.Edge{
+				Source: fmt.Sprintf("A_%d", a),
+				Target: fmt.Sprintf("B_%d_%d", a, b),
+			})
+		}
 	}
 }
