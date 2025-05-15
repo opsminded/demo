@@ -27,10 +27,11 @@ func main() {
 
 	buildTest2(&ex)
 
-	ctx, cancel := context.WithCancel(context.Background())
+	// TODO: remove this
+	_, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	s := service.New(ctx, 20*time.Second, []service.Extractor{&ex}, nil)
+	s := service.New([]service.Extractor{&ex})
 	time.Sleep(5 * time.Second)
 	s.SetVertexHealth("AndroidApp_CreditSimulators_AppModule", false)
 	s.SetVertexHealth("LoadBalancer_01", false)
